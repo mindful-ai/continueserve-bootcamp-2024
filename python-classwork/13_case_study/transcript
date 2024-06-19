@@ -1,0 +1,35 @@
+>python
+Python 3.7.3 (v3.7.3:ef4ec6ed12, Mar 25 2019, 22:22:05) [MSC v.1916 64 bit (AMD64)] on win32
+Type "help", "copyright", "credits" or "license" for more information.
+>>>
+>>> col = 'name,age,regid,phy,chem,math,bio,avg,rank\n'
+>>> row = 'Vijay,14,HPE001,99,98,97,36,0,0\n'
+>>> 
+>>> col.split(',')
+['name', 'age', 'regid', 'phy', 'chem', 'math', 'bio', 'avg', 'rank\n']
+>>> colnames = []
+>>> for c in col.split(','):
+...     colnames.append(c.strip())
+... 
+>>> colnames
+['name', 'age', 'regid', 'phy', 'chem', 'math', 'bio', 'avg', 'rank']
+>>> rowvalues = []
+>>> for r in row.split(','):
+...     rowvalues.append(r.strip())
+... 
+>>> rowvalues
+['Vijay', '14', 'HPE001', '99', '98', '97', '36', '0', '0']
+>>>
+>>> dict(zip(colnames, rowvalues))
+{'name': 'Vijay', 'age': '14', 'regid': 'HPE001', 'phy': '99', 'chem': '98', 'math': '97', 'bio': '36', 'avg': '0', 'rank': '0'}
+>>>
+>>> d = dict(zip(colnames, rowvalues)) 
+>>> classdict = {}
+>>> key = d['regid']
+>>> key
+'HPE001'
+>>> classdict[key] = d 
+>>> classdict
+{'HPE001': {'name': 'Vijay', 'age': '14', 'regid': 'HPE001', 'phy': '99', 'chem': '98', 'math': '97', 'bio': '36', 'avg': '0', 'rank': 
+'0'}}
+>>>
