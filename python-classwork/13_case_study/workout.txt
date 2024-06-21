@@ -1,0 +1,47 @@
+PS C:\Users\Admin\Desktop\arshniv-technologies\continueserve-bootcamp> python
+PS C:\Users\Admin\Desktop\arshniv-technologies\continueserve-bootcamp> python
+Python 3.10.5 (tags/v3.10.5:f377153, Jun  6 2022, 16:14:13) [MSC v.1929 64 bit (AMD64)] on win32 
+Type "help", "copyright", "credits" or "license" for more information.
+>>> s = 'computer'
+>>> print('{0:20}'.format(s))
+computer
+>>> template = '{0:8} | {1:10} | {2:3} | {3:3} | {4:3} | {5:3} | {6:3} | {7:6} | {8:3}'
+:6} | {8:3}'
+>>> template.format('HP0001', 'John', 12, 45, 67, 78, 89, 0 , 0)
+'HP0001   | John       |  12 |  45 |  67 |  78 |  89 |      0 |   0'       
+>>> r = "name,age,regid,phy,chem,math,bio,avg,rank\n"
+>>> c = "Vijay,14,HPE001,99,98,97,96,0,0\n"
+>>> row = r.split()
+>>> row
+['name,age,regid,phy,chem,math,bio,avg,rank']
+>>> row = r.split(,)
+  File "<stdin>", line 1
+    row = r.split(,)
+                  ^
+SyntaxError: invalid syntax
+>>> row = r.split(',')
+>>> row
+['name', 'age', 'regid', 'phy', 'chem', 'math', 'bio', 'avg', 'rank\n']    
+>>> list(map(strip, row))
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+NameError: name 'strip' is not defined
+>>> list(map(str.strip, row)) 
+['name', 'age', 'regid', 'phy', 'chem', 'math', 'bio', 'avg', 'rank']
+>>> row = list(map(str.strip, row))
+>>> col = list(map(str.strip, c.split(',')) 
+... )
+>>> col
+['Vijay', '14', 'HPE001', '99', '98', '97', '96', '0', '0']
+>>> dict(zip(row, col))
+{'name': 'Vijay', 'age': '14', 'regid': 'HPE001', 'phy': '99', 'chem': '98', 'math': '97', 'bio': '96', 'avg': '0', 'rank': '0'}
+>>> cd = {}
+>>> sd = dict(zip(row, col))
+>>> cd[sd['regid']] = sd
+>>> cd
+{'HPE001': {'name': 'Vijay', 'age': '14', 'regid': 'HPE001', 'phy': '99', 'chem': '98', 'math': '97', 'bio': '96', 'avg': '0', 'rank': '0'}}
+>>> cd['C0987']=sd
+>>> cd
+{'HPE001': {'name': 'Vijay', 'age': '14', 'regid': 'HPE001', 'phy': '99', 'chem': '98', 'math': '97', 'bio': '96', 'avg': '0', 'rank': '0'}, 'C0987': 
+{'name': 'Vijay', 'age': '14', 'regid': 'HPE001', 'phy': '99', 'chem': '98', 'math': '97', 'bio': '96', 'avg': '0', 'rank': '0'}}
+>>>
