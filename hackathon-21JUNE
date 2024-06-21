@@ -1,0 +1,24 @@
+Write a program to extract the spans of the given substring in a text
+Span is the starting index and ending index represented as tuple
+
+Example:
+
+text <- 'mississippi'
+substring <- ss
+
+Output:
+
+[(2, 4), (5, 7)]
+
+This means that ss in the python indeces [2:4] and [5:7] of the string "mississippi"
+
+Test:
+
+>>> s = "mississippi"
+>>> s[2:4]
+ss
+>>> s[5:7]
+ss
+
+
+
