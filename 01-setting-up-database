@@ -1,0 +1,150 @@
+Creating Oracle Sample Database for Practice
+********************************************************************************************************
+
+Objective: To load a database into the Oracle database server
+
+Step #1: Create a user and grant previlages
+--------------------------------------------------------------------------------------------------------
+
+Log in to the database with administrator previlages
+
+Enter user-name: sys as sysdba
+Enter password: <give the password>
+
+------------------- use this only to change the user in between -----------------------
+SQL> connect sys as sysdba;
+Enter password:
+Connected.
+---------------------------------------------------------------------------------------
+
+When you connect to the Oracle database server, you connect to a container database (CDB) named ROOT. 
+To show the current database, you use the SHOW command:
+
+SHOW con_name;
+
+Next, you need to switch to a pluggable database.
+
+SQL> ALTER SESSION SET CONTAINER = xepdb1;
+SQL> SHOW con_name;
+
+Before creating a new user, you need to change the database to open by executing the following command:
+
+SQL> ALTER DATABASE OPEN;
+
+Note: the XEPDB1 might already be open
+
+Then, you create a new user for creating the sample database in the pluggable database 
+using the following CREATE USER statement:
+
+SQL> create user demo2 identified by demo;
+
+User created.
+
+Grant tablespace and other permissions:
+
+SQL> grant unlimited tablespace to demo2;
+
+Grant succeeded.
+
+SQL> grant resource, connect, dba to demo2;
+
+Grant succeeded.
+
+Finally, connect to the database:
+
+SQL> connect demo2/demo@192.168.56.1:1521/xepdb1
+Connected.
+
+
+Step #2: Create the tables
+--------------------------------------------------------------------------------------------------------
+
+SQL>@<path to ot_schema.sql>
+
+
+Step #3: Load the data
+--------------------------------------------------------------------------------------------------------
+
+SQL>@<path to ot_data.sql>
+
+
+Step #4: Test if the tables are loaded
+--------------------------------------------------------------------------------------------------------
+
+SQL> SELECT table_name FROM user_tables ORDER BY table_name;
+
+SQL> SELECT COUNT(*) FROM contacts;
+
+
+
+--------------------------------------------------------------------------------------------------------
+If the connection is established properly
+
+C:\Users\mindf>lsnrctl status
+
+LSNRCTL for 64-bit Windows: Version 21.0.0.0.0 - Production on 07-JUN-2024 21:57:02
+
+Copyright (c) 1991, 2021, Oracle.  All rights reserved.
+
+Connecting to (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=192.168.56.1)(PORT=1521)))
+STATUS of the LISTENER
+------------------------
+Alias                     LISTENER
+Version                   TNSLSNR for 64-bit Windows: Version 21.0.0.0.0 - Production
+Start Date                07-JUN-2024 19:04:48
+Uptime                    0 days 2 hr. 52 min. 17 sec
+Trace Level               off
+Security                  ON: Local OS Authentication
+SNMP                      OFF
+Default Service           XE
+Listener Parameter File   C:\app\mindf\product\21c\homes\OraDB21Home1\network\admin\listener.ora
+Listener Log File         C:\app\mindf\product\21c\diag\tnslsnr\Purushotham\listener\alert\log.xml
+Listening Endpoints Summary...
+  (DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=192.168.56.1)(PORT=1521)))
+  (DESCRIPTION=(ADDRESS=(PROTOCOL=ipc)(PIPENAME=\\.\pipe\EXTPROC1521ipc)))
+  (DESCRIPTION=(ADDRESS=(PROTOCOL=tcps)(HOST=127.0.0.1)(PORT=5500))(Security=(my_wallet_directory=C:\APP\MINDF\PRODUCT\21C\admin\XE\xdb_wallet))(Presentation=HTTP)(Session=RAW))
+Services Summary...
+Service "9cf14cd15551428a92848c1e27b142ed" has 1 instance(s).
+  Instance "xe", status READY, has 2 handler(s) for this service...
+Service "CLRExtProc" has 1 instance(s).
+  Instance "CLRExtProc", status UNKNOWN, has 1 handler(s) for this service...
+Service "XE" has 1 instance(s).
+  Instance "xe", status READY, has 2 handler(s) for this service...
+Service "XEXDB" has 1 instance(s).
+  Instance "xe", status READY, has 1 handler(s) for this service...
+Service "xepdb1" has 1 instance(s).
+  Instance "xe", status READY, has 2 handler(s) for this service...
+The command completed successfully
+
+
+-------------------------------------- Additional Exercises ------------------------------
+
+To check if the Oracle service is running:
+
+C:\Users\mindf>tasklist | findstr /i oracle
+
+To display the list of users:
+
+SQL> describe dba_users;
+SQL> select username from dba_users;
+
+You should be able to see the user you just created
+
+To see all the PDBs:
+
+SQL> select name from v$pdbs;
+
+To see the current user:
+
+SQL> select user from dual;
+
+To check the service name:
+
+SQL> select sys_context('userenv', 'service_name') from dual;
+
+To check of available services:
+
+SQL> select name from V$SERVICES;
+SQL> select name from V$ACTIVE_SERVICES;
+
+------------------------------------------------------------------------------------------
