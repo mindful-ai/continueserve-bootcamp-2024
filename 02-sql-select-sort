@@ -1,0 +1,126 @@
+---------------------------------------------------------------------------
+1. Select Command
+---------------------------------------------------------------------------
+
+SELECT
+    customer_id,
+    name,
+    credit_limit
+FROM
+    customers;
+
+SELECT * FROM CUSTOMERS;
+
+To list all tables in an Oracle database, you can query the data dictionary 
+views provided by Oracle. The most commonly used views for this purpose 
+are ALL_TABLES, USER_TABLES, and DBA_TABLES. Here’s a brief overview of each:
+
+ALL_TABLES: Shows all tables accessible to the current user.
+USER_TABLES: Shows all tables owned by the current user.
+DBA_TABLES: Shows all tables in the database. This view requires DBA privileges.
+
+SELECT table_name
+FROM all_tables;
+
+PS: try with user_tables, dba_tables
+
+
+To list the tables owned by the current user:
+
+SELECT owner, table_name
+FROM dba_tables
+ORDER BY owner, table_name;
+
+To see all the PDBs:
+
+SQL> select name from v$pdbs;
+
+To see the current user:
+
+SQL> select user from dual;
+
+To check the service name:
+
+SQL> select sys_context('userenv', 'service_name') from dual;
+
+To check of available services:
+
+SQL> select name from V$SERVICES;
+SQL> select name from V$ACTIVE_SERVICES;
+
+---------------------------------------------------------------------------
+2. Sorting
+---------------------------------------------------------------------------
+
+--- Ordering in ascending order:
+
+SELECT
+    name,
+    address,
+    credit_limit
+FROM
+    customers
+ORDER BY
+    name ASC;
+
+--- Sorting multiple rows:
+
+SELECT
+	first_name,
+	last_name
+FROM
+	contacts
+ORDER BY
+	first_name,
+	last_name DESC;
+
+--- Specifying positions of the columns:
+
+SELECT
+    name,
+    credit_limit
+FROM
+    customers
+ORDER BY
+    2 DESC,
+    1;
+
+--- With NULLs:
+
+SELECT
+    country_id,
+    city,
+    state
+FROM
+    locations
+ORDER BY
+    state ASC NULLS FIRST;
+
+--- Using functions:
+
+SELECT
+	customer_id,
+	name
+FROM
+	customers
+ORDER BY
+	UPPER( name );
+
+--- Order the date column:
+
+SELECT 
+   order_id, 
+   customer_id, 
+   status, 
+   order_date
+FROM 
+   orders
+ORDER BY 
+   order_date DESC;
+
+
+
+
+
+
+

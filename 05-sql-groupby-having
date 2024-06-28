@@ -1,0 +1,77 @@
+
+---------------------------------------------------------------------------
+4. GROUPBY / HAVING
+---------------------------------------------------------------------------
+
+SELECT
+    status
+FROM
+    orders
+GROUP BY
+    status;
+
+SELECT
+    customer_id,
+    COUNT( order_id )
+FROM
+    orders
+GROUP BY
+    customer_id
+ORDER BY
+    customer_id;
+
+SELECT
+    name,
+    COUNT( order_id )
+FROM
+    orders
+INNER JOIN customers
+        USING(customer_id)
+GROUP BY
+    name
+ORDER BY
+    name;
+
+SELECT
+    EXTRACT(YEAR FROM order_date) YEAR,
+    COUNT( order_id )
+FROM
+    orders
+GROUP BY
+    EXTRACT(YEAR FROM order_date)
+ORDER BY
+    YEAR;
+
+The following statement computes the sales amount and groups them by customer_id, status, and (customer_id, status)
+
+SELECT
+    customer_id,
+    status,
+    SUM( quantity * unit_price ) sales
+FROM
+    orders
+INNER JOIN order_items
+        USING(order_id)
+GROUP BY
+    ROLLUP(
+        customer_id,
+        status
+    );
+
+---------------- HAVING
+
+In this statement, the HAVING clause appears immediately after the GROUP BY clause.
+
+If you use the HAVING clause without the GROUP BY clause, the HAVING clause works like the WHERE clause.
+
+SELECT
+    order_id,
+    SUM( unit_price * quantity ) order_value
+FROM
+    order_items
+GROUP BY
+    order_id
+HAVING
+    SUM( unit_price * quantity ) > 1000000
+ORDER BY
+    order_value DESC;

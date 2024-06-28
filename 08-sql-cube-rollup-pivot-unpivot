@@ -1,0 +1,444 @@
+---------------------------------------------------------------------------
+8A. CUBE
+---------------------------------------------------------------------------
+
+The following customer_category_sales view that returns sales amounts for all product categories and customers with the identity of 1 and 2:
+
+CREATE OR ALTER VIEW customer_category_sales AS
+SELECT 
+    category_name category, 
+    customers.name customer, 
+    SUM(quantity*unit_price) sales_amount
+FROM 
+    orders
+    INNER JOIN customers USING(customer_id)
+    INNER JOIN order_items USING (order_id)
+    INNER JOIN products USING (product_id)
+    INNER JOIN product_categories USING (category_id)
+WHERE 
+    customer_id IN (1,2)
+GROUP BY 
+    category_name, 
+    customers.name;
+
+
+This example uses the CUBE to generate subtotals for product category and customer and grand total 
+for these customers (customer id 1 and 2) and all product categories:
+
+SELECT
+    category,
+    customer,
+    SUM(sales_amount) 
+FROM 
+    customer_category_sales
+GROUP BY 
+    CUBE(category,customer)
+ORDER BY 
+    category NULLS LAST, 
+    customer NULLS LAST;
+
+In this example, we have two dimensions: category and customer, 
+therefore, the statement returns 4 subtotals:
+
+    > A subtotal by category.
+    > A subtotal by customer.
+    > A subtotal by both category and customer.
+    > A grand total.
+
+---------------------------------------------------------------------------
+8B. ROLLUP
+---------------------------------------------------------------------------
+
+Consider the following orders and order_items tables in the sample database.
+
+The following query returns the sales revenue by customers in the year of 2017. It calculates net values for the sales orders with the Shipped status and is in charge of a salesman.
+
+SELECT
+   customer_id,
+   SUM(quantity * unit_price) amount
+FROM
+   orders
+INNER JOIN order_items USING (order_id)
+WHERE
+   status      = 'Shipped' AND 
+   salesman_id IS NOT NULL AND 
+   EXTRACT(YEAR FROM order_date) = 2017
+GROUP BY
+   customer_id
+ORDER BY
+   amount DESC;
+
+
+To get the sum of the values in the amount column, you may come up with the following subquery:
+
+SELECT
+   SUM(amount)
+FROM
+   (
+      SELECT
+         customer_id,
+         SUM(quantity * unit_price) amount
+      FROM
+         orders
+      INNER JOIN order_items USING (order_id)
+      WHERE
+         status      = 'Shipped' AND 
+         salesman_id IS NOT NULL AND 
+         EXTRACT(YEAR FROM order_date) = 2017
+      GROUP BY
+         customer_id
+   );
+
+Oracle provides a better and faster way to calculate the grand total by using the 
+ROLLUP as shown in the following query:
+
+SELECT
+   customer_id,
+   SUM(quantity * unit_price) amount
+FROM
+   orders
+INNER JOIN order_items USING (order_id)
+WHERE
+   status      = 'Shipped' AND 
+   salesman_id IS NOT NULL AND 
+   EXTRACT(YEAR FROM order_date) = 2017
+GROUP BY
+   ROLLUP(customer_id);
+
+The following illustrates the syntax of the ROLLUP :
+
+SELECT
+   col1,
+   col2,
+   aggregate(col3)
+FROM
+   table_name
+GROUP BY
+   ROLLUP (col1, col2);
+
+
+In the query syntax above, the ROLLUP creates subtotals that roll up 
+from the most detailed level to a grand total, following a grouping column 
+specified in the ROLLUP.
+
+Syntax:
+
+SELECT
+   col1,
+   col2,
+   aggregate(col3)
+FROM
+   table_name
+GROUP BY
+   ROLLUP (col1, col2);
+
+The ROLLUP works as follows:
+
+First, calculate the standard aggregate values in the GROUP BY clause.
+Then, progressively create higher-level subtotals of the grouping columns, 
+which are col2 and col1 columns, from right to left.
+Finally, calculate the grand total.
+
+The ROLLUP clause generates the number of grouping sets which is the same as 
+the number of grouping columns specified in the ROLLUP plus a grand total. 
+In other words, if you have n columns listed in the ROLLUP, you will get n+ 1 level 
+of subtotals with ROLLUP.
+
+---------------------------------------------------------------------------
+8C. PIVOT
+---------------------------------------------------------------------------
+
+PIVOT clause that allows you to write cross-tabulation queries which transpose rows into columns, aggregating data in the process of the transposing. As a result, the 
+output of a pivot operation returns more columns and fewer rows than the starting data set.
+
+Syntax:
+
+SELECT 
+    select_list
+FROM 
+    table_name
+PIVOT [XML] ( 
+    pivot_clause
+    pivot_for_clause
+    pivot_in_clause 
+);
+
+In this syntax, following the PIVOT keyword are three clauses:
+
+pivot_clause specifies the column(s) that you want to aggregate. 
+The pivot_clause performs an implicitly GROUP BY based on all columns that 
+are not specified in the clause, along with values provided by the pivot_in_clause.
+pivot_for_clause specifies the column that you want to group or pivot.
+pivot_in_clause defines a filter for column(s) in the pivot_for_clause. 
+The aggregation for each value in the pivot_in_clause will be rotated into a separate column.
+
+Let us  create a view:
+
+CREATE VIEW order_stats AS
+SELECT 
+    category_name, 
+    status, 
+    order_id
+FROM 
+    order_items
+INNER JOIN orders USING (order_id)
+INNER JOIN products USING (product_id)
+INNER JOIN product_categories USING (category_id);
+
+SELECT * FROM order_stats;
+
+This example uses the PIVOT clause to return the number of 
+orders for each product category by order status:
+
+SELECT * FROM order_stats
+PIVOT(
+    COUNT(order_id) 
+    FOR category_name
+    IN ( 
+        'CPU',
+        'Video Card',
+        'Mother Board',
+        'Storage'
+    )
+)
+ORDER BY status;
+
+In this example:
+
+The COUNT(order_id) is the pivot_clause.
+FOR category_name is the pivot_for_clause.
+And here is the pivot_in_clause:
+
+IN (
+    'CPU',
+    'Video Card',
+    'Mother Board',
+    'Storage'
+)
+
+The COUNT() function returns the number of orders by category and order status. 
+The query uses the values specified in the pivot_in_clause for the column 
+headings of the result set.
+
+
+Setting Aliases:
+
+SELECT * FROM order_stats
+PIVOT(
+    COUNT(order_id) order_count
+    FOR category_name
+    IN ( 
+        'CPU' CPU,
+        'Video Card' VideoCard, 
+        'Mother Board' MotherBoard,
+        'Storage' Storage
+    )
+)
+ORDER BY status;
+
+Pivoting multiple columns:
+
+CREATE OR REPLACE VIEW order_stats AS
+SELECT 
+    category_name, 
+    status, 
+    order_id, 
+    SUM(quantity * list_price) AS order_value
+FROM 
+    order_items
+INNER JOIN orders USING (order_id)
+INNER JOIN products USING (product_id)
+INNER JOIN product_categories USING (category_id)
+GROUP BY 
+    order_id, 
+    status, 
+    category_name;
+
+SELECT * FROM order_stats;
+
+SELECT * FROM order_stats
+PIVOT(
+    COUNT(order_id) orders,
+    SUM(order_value) sales
+    FOR category_name
+    IN ( 
+        'CPU' CPU,
+        'Video Card' VideoCard, 
+        'Mother Board' MotherBoard,
+        'Storage' Storage
+    )
+)
+ORDER BY status;
+
+You should see from the output, the number of pivot columns is doubled, 
+combining category_name with orders and sales.
+
+Finally, use status as the pivot columns and category_name as rows:
+
+SELECT * FROM order_stats
+PIVOT(
+    COUNT(order_id) orders,
+    SUM(order_value) sales
+    FOR status
+    IN ( 
+        'Canceled' Canceled,
+        'Pending' Pending, 
+        'Shipped' Shipped
+    )
+)
+ORDER BY category_name;   
+
+PIVOT with a sub-query:
+
+You cannot use a subquery in the pivot_in_clause. 
+The following statement is invalid and causes an error:
+
+SELECT * FROM order_stats
+PIVOT(
+    COUNT(order_id) orders,
+    SUM(order_value) sales
+    FOR category_name
+    IN ( 
+       SELECT category_name 
+       FROM product_categories
+    )
+)
+ORDER BY status;
+
+This restriction is relaxed with the XML option:
+
+SELECT * FROM order_stats
+PIVOT XML (
+    COUNT(order_id) orders,
+    SUM(order_value) sales
+    FOR category_name
+    IN ( 
+       SELECT category_name 
+       FROM product_categories
+    )
+)
+ORDER BY status;  
+
+To view XML in the output grid from the SQL Developer, you follow these steps to set it up:
+
+> From the Tool menu, select Preferences
+> Under Database > Advanced, check the option Display XML Value in Grid
+
+
+Note that the subquery must return a list of unique values. 
+Otherwise, Oracle will raise a run-time error. If you are not sure 
+whether the subquery returns a list of distinct values or not, 
+you can use the DISTINCT keyword in the subquery.
+
+---------------------------------------------------------------------------
+8D. UNPIVOT
+---------------------------------------------------------------------------
+
+The Oracle UNPIVOT clause allows you to transpose columns to rows. 
+The UNPIVOT clause is opposite to the PIVOT clause except that it does 
+not de-aggregate data during the transposing process.
+
+The following illustrates the syntax of the Oracle UNPIVOT clause:
+
+SELECT 
+    select_list
+FROM table_name
+UNPIVOT [INCLUDE | EXCLUDE NULLS](
+    unpivot_clause
+    unpivot_for_clause
+    unpivot_in_clause 
+);
+
+In this syntax:
+
+    > The unpivot_clause allows you to specify a name for a column that represents 
+    the unpivoted measure values.
+    > The unpivot_for_clause allows you to specify the name for each column that will 
+    hold the measure’s values.
+    > The unpivot_in_clause contains the pivoted columns that will be unpivoted.
+
+The INCLUDE | EXCLUDE NULLS clause allows you to include or exclude null-valued rows.
+
+The INCLUDE NULLS clause instructs Oracle to include null-valued rows.
+The EXCLUDE NULLS clause, on the other hand, eliminates null-valued rows from 
+the returned result set. By default, the unpivot operation excludes null-valued rows.
+
+Setting up:
+
+CREATE TABLE sale_stats(
+    id INT PRIMARY KEY,
+    fiscal_year INT,
+    product_a INT,
+    product_b INT,
+    product_c INT
+);
+
+INSERT INTO sale_stats(id, fiscal_year, product_a, product_b, product_c)
+VALUES(1,2017, NULL, 200, 300);
+
+INSERT INTO sale_stats(id, fiscal_year, product_a, product_b, product_c)
+VALUES(2,2018, 150, NULL, 250);
+
+INSERT INTO sale_stats(id, fiscal_year, product_a, product_b, product_c)
+VALUES(3,2019, 150, 220, NULL);
+
+SELECT * FROM sale_stats;
+
+SELECT * FROM sale_stats
+UNPIVOT(
+    quantity  -- unpivot_clause
+    FOR product_code --  unpivot_for_clause
+    IN ( -- unpivot_in_clause
+        product_a AS 'A', 
+        product_b AS 'B', 
+        product_c AS 'C'
+    )
+);
+
+The following example uses the UNPIVOT clause to transpose values in the 
+columns product_a, product_b, and product_c to rows, but including null-valued rows:
+
+SELECT * FROM sale_stats
+UNPIVOT INCLUDE NULLS(
+    quantity
+    FOR product_code 
+    IN (
+        product_a AS 'A', 
+        product_b AS 'B', 
+        product_c AS 'C'
+    )
+);
+
+Multiple Columns:
+
+DROP TABLE sale_stats;
+    
+CREATE TABLE sale_stats(
+    id INT PRIMARY KEY,
+    fiscal_year INT,
+    a_qty INT,
+    a_value DEC(19,2),
+    b_qty INT,
+    b_value DEC(19,2)
+);
+
+INSERT INTO sale_stats(id, fiscal_year, a_qty, a_value, b_qty, b_value)
+VALUES(1, 2018, 100, 1000, 2000, 4000);
+
+INSERT INTO sale_stats(id, fiscal_year, a_qty, a_value, b_qty, b_value)
+VALUES(2, 2019, 150, 1500, 2500, 5000);
+
+SELECT * FROM sale_stats;
+
+Use the UNPIVOT clause to transpose the values in the column a_qty, a_value, b_qty, 
+and b_value into rows:
+
+SELECT * FROM sale_stats
+UNPIVOT (
+    (quantity, amount)
+    FOR product_code
+    IN (
+        (a_qty, a_value) AS 'A', 
+        (b_qty, b_value) AS 'B'        
+    )
+);

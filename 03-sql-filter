@@ -1,0 +1,210 @@
+---------------------------------------------------------------------------
+3. Filtering
+---------------------------------------------------------------------------
+
+The DISTINCT clause is used in a SELECT statement to filter duplicate rows in 
+the result set. It ensures that rows returned are unique for the column or columns 
+specified in the SELECT clause.
+
+SELECT DISTINCT
+  first_name
+FROM
+  contacts
+ORDER BY
+  first_name;
+
+SELECT
+    DISTINCT product_id,
+    quantity
+FROM
+    ORDER_ITEMS
+ORDER BY
+    product_id;
+
+The WHERE clause specifies a search condition for rows returned by the SELECT statement.
+
+SELECT
+    product_name,
+    description,
+    list_price,
+    category_id
+FROM
+    products
+WHERE
+    product_name = 'Kingston';
+
+-----------------------------------------------------------------------
+Try the following: figure the table accordinging to the requirement
+-----------------------------------------------------------------------
+
+list_price > 500;
+
+list_price > 500
+    AND category_id = 1;
+
+WHERE
+    list_price BETWEEN 650 AND 680
+ORDER BY
+    list_price;
+
+WHERE
+    category_id IN(1, 4)
+ORDER BY
+    product_name;
+
+
+WHERE
+	product_name LIKE 'Asus%'
+ORDER BY
+	list_price;
+
+
+WHERE
+	status = 'Pending'
+	AND customer_id = 2
+ORDER BY
+	order_date;
+
+WHERE
+    status = 'Shipped'
+    AND salesman_id = 60
+    AND EXTRACT(YEAR FROM order_date) = 2017
+ORDER BY
+    order_date;
+
+WHERE
+    (
+        status = 'Canceled'
+        OR status = 'Pending'
+    )
+    AND customer_id = 44
+ORDER BY
+    order_date;
+
+-------------------------------- OR
+
+SELECT
+    order_id,
+    customer_id,
+    status,
+    order_date
+FROM
+    orders
+WHERE
+    status = 'Pending'
+    OR status = 'Canceled'
+ORDER BY
+    order_date DESC;
+
+
+
+--------------------------
+
+SELECT
+    order_id,
+    customer_id,
+    status,
+    salesman_id,
+    order_date
+FROM
+    orders
+WHERE
+    salesman_id = 60
+    OR salesman_id = 61
+    OR salesman_id = 62
+ORDER BY
+    order_date DESC;
+
+SELECT
+    order_id,
+    customer_id,
+    status,
+    salesman_id,
+    order_date
+FROM
+    orders
+WHERE
+    salesman_id IN(
+        60,
+        61,
+        62
+    )
+ORDER BY
+    order_date DESC;
+
+SELECT
+    order_id,
+    customer_id,
+    status,
+    salesman_id,
+    order_date
+FROM
+    orders
+WHERE
+    (
+        status = 'Canceled'
+        OR status = 'Pending'
+    )
+    AND customer_id = 44
+ORDER BY
+    order_date;
+
+-------------------------- FETCH
+
+Oracle Database does not have the LIMIT clause. However, since the 12c release, 
+it provided a similar but more flexible clause named the row limiting clause.
+
+SELECT
+    product_name,
+    quantity
+FROM
+    inventories
+INNER JOIN products
+        USING(product_id)
+ORDER BY
+    quantity DESC 
+FETCH NEXT 5 ROWS ONLY;
+
+-------------------------- BETWEEN
+
+SELECT
+    product_name,
+    standard_cost
+FROM
+    products
+WHERE
+    standard_cost BETWEEN 500 AND 600
+ORDER BY
+    standard_cost;
+
+--------------------------- % _ wildcard
+
+SELECT
+    first_name,
+    last_name,
+    email
+FROM
+    contacts
+WHERE
+    UPPER( first_name ) LIKE 'CH%';
+ORDER BY
+    first_name;
+
+SELECT
+    first_name,
+    last_name,
+    email,
+    phone
+FROM
+    contacts
+WHERE
+    first_name LIKE 'Je_i'
+ORDER BY 
+    first_name;
+
+--------------------------- IS NULLS
+SELECT * FROM orders 
+WHERE salesman_id IS NULL
+ORDER BY order_date DESC;
+
+Use IS NOT also

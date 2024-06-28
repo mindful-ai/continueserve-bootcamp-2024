@@ -1,0 +1,246 @@
+---------------------------------------------------------------------------
+5. SUB-QUERY
+---------------------------------------------------------------------------
+A subquery is a SELECT statement nested inside another statement such as
+ SELECT, INSERT, UPDATE, or DELETE. Typically, you can use a subquery anywhere that 
+ you use an expression.
+
+The following statement returns the product name, list price, and the average 
+list prices of products according to their categories:
+
+SELECT
+    product_name,
+    list_price,
+    ROUND(
+        (
+            SELECT
+                AVG( list_price )
+            FROM
+                products p1
+            WHERE
+                p1. category_id = p2.category_id
+        ),
+        2
+    ) avg_list_price
+FROM
+    products p2
+ORDER BY
+    product_name;
+
+For example, the following statement returns the top 10 orders with the highest values:
+
+SELECT
+    order_id,
+    order_value
+FROM
+    (
+        SELECT
+            order_id,
+            SUM( quantity * unit_price ) order_value
+        FROM
+            order_items
+        GROUP BY
+            order_id
+        ORDER BY
+            order_value DESC
+    )
+FETCH FIRST 10 ROWS ONLY; 
+
+For example, the following query finds products whose list price is greater than 
+the average list price.
+
+SELECT
+    product_id,
+    product_name,
+    list_price
+FROM
+    products
+WHERE
+    list_price > (
+        SELECT
+            AVG( list_price )
+        FROM
+            products
+    )
+ORDER BY
+    product_name;
+
+For example, the following query finds the salesman who had sales above 100K in 2017:
+
+SELECT
+    employee_id,
+    first_name,
+    last_name
+FROM
+    employees
+WHERE
+    employee_id IN(
+        SELECT
+            salesman_id
+        FROM
+            orders
+        INNER JOIN order_items
+                USING(order_id)
+        WHERE
+            status = 'Shipped'
+        GROUP BY
+            salesman_id,
+            EXTRACT(
+                YEAR
+            FROM
+                order_date
+            )
+        HAVING
+            SUM( quantity * unit_price )  >= 1000000  
+            AND EXTRACT(
+                YEAR
+            FROM
+                order_date) = 2017
+            AND salesman_id IS NOT NULL
+    )
+ORDER BY
+    first_name,
+    last_name;
+
+The following statement finds all customers who have not yet placed an order in 2017:
+
+SELECT
+    name
+FROM
+    customers
+WHERE
+    customer_id NOT IN(
+        SELECT
+            customer_id
+        FROM
+            orders
+        WHERE
+            EXTRACT(
+                YEAR
+            FROM
+                order_date) = 2017
+            
+    )
+ORDER BY
+    name; 
+
+------------------------------- Correlated Sub-query
+
+Correlated sub-query whose some clauses refer to the column expressions in the outer query.
+
+The following query returns the cheapest products from the products table using a 
+subquery in the WHERE clause.
+
+SELECT
+    product_id,
+    product_name,
+    list_price
+FROM
+    products
+WHERE
+    list_price =(
+        SELECT
+            MIN( list_price )
+        FROM
+            products
+    );
+
+The following query finds all products whose list price is above average for their category.
+
+SELECT
+    product_id,
+    product_name,
+    list_price
+FROM
+    products p
+WHERE
+    list_price > (
+        SELECT
+            AVG( list_price )
+        FROM
+            products
+        WHERE
+            category_id = p.category_id
+    );
+
+The following query returns all products and the average standard cost based 
+on the product category:
+
+SELECT
+    product_id,
+    product_name,
+    standard_cost,
+    ROUND(
+        (
+            SELECT
+                AVG( standard_cost )
+            FROM
+                products
+            WHERE
+                category_id = p.category_id
+        ),
+        2
+    ) avg_standard_cost
+FROM
+    products p
+ORDER BY
+    product_name;
+
+
+--------------------- EXISTIS
+
+
+The following example uses the EXISTS operator to find all customers who have the order.
+
+SELECT
+    name
+FROM
+    customers c
+WHERE
+    EXISTS (
+        SELECT
+            1
+        FROM
+            orders
+        WHERE
+            customer_id = c.customer_id
+    )
+ORDER BY
+    name;
+
+---------------------------- anywhere
+
+The following statement returns all products whose list price is greater than 
+any list price of products in the category 1:
+
+
+SELECT
+    product_name,
+    list_price
+FROM
+    products
+WHERE
+    list_price > ANY(
+        SELECT
+            list_price
+        FROM
+            products
+        WHERE
+            category_id = 1
+    )
+ORDER BY
+    product_name;
+
+SELECT
+    product_name,
+    list_price
+FROM
+    products
+WHERE
+    list_price = ANY(
+        2200,
+        2259.99,
+        2269.99
+    )
+    AND category_id = 1;
+

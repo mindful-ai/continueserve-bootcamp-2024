@@ -1,0 +1,219 @@
+---------------------------------------------------------------------------
+7. Grouping sets
+---------------------------------------------------------------------------
+
+How to use the Oracle GROUPING SETS expression to generate multiple grouping 
+sets in a query. Let’s create a view that returns sales amounts by product category and customer. For the demonstration purpose, 
+we will pick only two customers whose identities are 1 and 2.
+
+CREATE VIEW customer_category_sales AS
+SELECT 
+    category_name category, 
+    customers.name customer, 
+    SUM(quantity*unit_price) sales_amount
+FROM 
+    orders
+    INNER JOIN customers USING(customer_id)
+    INNER JOIN order_items USING (order_id)
+    INNER JOIN products USING (product_id)
+    INNER JOIN product_categories USING (category_id)
+WHERE 
+    customer_id IN (1,2)
+GROUP BY 
+    category_name, 
+    customers.name;
+
+This query returns data from the customer_category_sales view:
+
+SELECT 
+    customer, 
+    category, 
+    sales_amount 
+FROM 
+    customer_category_sales
+ORDER BY
+    customer,
+    category;
+
+---------------------------------- Grouping sets
+A grouping set is a grouping of one or more columns by which you group 
+using the GROUP BY clause. A grouping set is denoted by a list of comma-separated 
+columns in parentheses:
+
+(column1, column2,...)
+
+For example, this query returns a grouping set that includes the category column, 
+(category) grouping set:
+
+SELECT 
+    category, 
+    SUM(sales_amount) 
+FROM 
+    customer_category_sales
+GROUP BY 
+    category;
+
+The following query defines another grouping set that includes the customer column, or (customer) grouping set:
+
+SELECT 
+    customer, 
+    SUM(sales_amount)
+FROM 
+    customer_category_sales
+GROUP BY 
+    customer;   
+
+And this query returns a grouping set that includes both columns customer and category, or (customer, category) grouping set:
+
+SELECT 
+    customer, 
+    category, 
+    sales_amount 
+FROM 
+    customer_category_sales
+ORDER BY
+    customer,
+    category;
+
+A grouping set may include zero columns. In this case, it is an empty grouping set, 
+which is denoted by (). The following query doesn’t use the GROUP BY clause, therefore, 
+it returns an empty grouping set ():
+
+SELECT 
+    SUM(sales_amount)
+FROM 
+    customer_category_sales;
+
+So far, we have four queries that return 4 grouping sets: (category), (customer), 
+(category, customer), and ().
+
+If you want to return four grouping sets in one query, 
+you need to use the UNION ALL operator.
+
+However, the UNION ALL operator requires all involved queries to 
+return the same number of columns. Therefore, to make it work, you need to add 
+NULL to the select list of each query as shown in the following query:
+
+
+SELECT 
+    category, 
+    NULL,
+    SUM(sales_amount) 
+FROM 
+    customer_category_sales
+GROUP BY 
+    category
+UNION ALL    
+SELECT 
+    customer,
+    NULL,
+    SUM(sales_amount)
+FROM 
+    customer_category_sales
+GROUP BY 
+    customer
+UNION ALL
+SELECT 
+    customer, 
+    category, 
+    sum(sales_amount)
+FROM 
+    customer_category_sales
+GROUP BY 
+    customer,
+    category
+UNION ALL   
+SELECT
+    NULL,
+    NULL,
+    SUM(sales_amount)
+FROM 
+    customer_category_sales;
+
+
+Instead you can use the GROUPING SETS instead:
+
+SELECT 
+    customer, 
+    category,
+    SUM(sales_amount)
+FROM 
+    customer_category_sales
+GROUP BY 
+    GROUPING SETS(
+        (customer,category),
+        (customer),
+        (category),
+        ()
+    )
+ORDER BY 
+    customer, 
+    category;   
+
+The GROUPING() function differentiates the super-aggregate rows from regular grouped rows. 
+The following illustrates the basic syntax of the GROUPING() function:
+
+This query uses the GROUPING() function to distinguish super-aggregate 
+rows from the regular grouped rows:
+
+SELECT 
+    customer, 
+    category,
+    GROUPING(customer) customer_grouping,
+    GROUPING(category) category_grouping,
+    SUM(sales_amount) 
+FROM customer_category_sales
+GROUP BY 
+    GROUPING SETS(
+        (customer,category),
+        (customer),
+        (category),
+        ()
+    )
+ORDER BY 
+    customer, 
+    category;
+
+To make the output more readable, you can combine the DECODE() function with 
+the GROUPING() function as shown in the following query:
+
+SELECT 
+    DECODE(GROUPING(customer),1,'ALL customers', customer) customer,
+    DECODE(GROUPING(category),1,'ALL categories', category) category,
+    SUM(sales_amount) 
+FROM 
+    customer_category_sales
+GROUP BY 
+    GROUPING SETS(
+        (customer,category),
+        (customer),
+        (CATEGORY),
+        ()
+    )
+ORDER BY 
+    customer, 
+    category;
+
+The GROUPING_ID() function takes the “group by” columns and returns a number 
+denoting the GROUP BY level. In other words, it provides another compact way to 
+identify the subtotal rows.
+
+This statement uses the GROUPING_ID() function to return the GROUP BY level:
+
+SELECT 
+    customer, 
+    category,
+    GROUPING_ID(customer,category) grouping,
+    SUM(sales_amount) 
+FROM customer_category_sales
+GROUP BY 
+    GROUPING SETS(
+        (customer,category),
+        (customer),
+        (category),
+        ()
+    )
+ORDER BY 
+    customer, 
+    category;
+
