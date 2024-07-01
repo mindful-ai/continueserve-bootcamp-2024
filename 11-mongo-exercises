@@ -1,0 +1,425 @@
+---------------------------------------------------------------------------
+11A. Installation
+---------------------------------------------------------------------------
+
+Refer: https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-windows/
+
+Download: https://www.mongodb.com/try/download/shell to download the mongosh
+
+Additionally, you can also install MongoDB Compass
+Generally, gets installed when you install MongoDB on Windows
+and mongosh 
+
+The MongoDB runs as a Network Service, URL as below:
+mongodb://localhost:27017/
+
+---------------------------------------------------------------------------
+11B. Creating and Dropping a database
+---------------------------------------------------------------------------
+
+MongoDB use DATABASE_NAME is used to create database. The command will create a new database if it doesn't exist, otherwise it will return the existing database.
+
+Creating the database -> use testdb
+
+Listing the databases -> show dbs
+
+Current database      -> db
+
+Dropping the database -> 
+
+> use testdb
+> db.dropDatabase()
+
+---------------------------------------------------------------------------
+11C. Creating and Dropping a collection
+---------------------------------------------------------------------------
+
+MongoDB db.createCollection(name, options) is used to create collection.
+
+Basic syntax of createCollection() command is as follows −
+
+db.createCollection(name, options)
+
+In the command, name is name of collection to be created. 
+Options is a document and is used to specify configuration of collection.
+
+options -> capped, autoIndexID, size, max
+
+>use test
+>db.createCollection("mycollection")
+
+> db.createCollection("mycol", { capped : true, autoIndexID : true, size : 6142800, max : 10000 } )
+
+>show collections
+
+>db.mycollection.drop() 
+db.<name-of-the-collection>.drop()
+
+---------------------------------------------------------------------------
+11D. Inserting
+---------------------------------------------------------------------------
+
+The MongoDB shell provides the following methods to insert documents into a collection:
+
+To insert a single document, use db.collection.insertOne()
+
+To insert multiple documents, use db.collection.insertMany()
+
+>use mflix
+>db.createCollection("movies")
+>db.movies.insertOne(
+  {
+    title: "The Favourite",
+    genres: [ "Drama", "History" ],
+    runtime: 121,
+    rated: "R",
+    year: 2018,
+    directors: [ "Yorgos Lanthimos" ],
+    cast: [ "Olivia Colman", "Emma Stone", "Rachel Weisz" ],
+    type: "movie"
+  }
+)
+>db.movies.find()
+>db.movies.find( { title: "The Favourite" } )
+
+>db.movies.insertMany([
+   {
+      title: "Jurassic World: Fallen Kingdom",
+      genres: [ "Action", "Sci-Fi" ],
+      runtime: 130,
+      rated: "PG-13",
+      year: 2018,
+      directors: [ "J. A. Bayona" ],
+      cast: [ "Chris Pratt", "Bryce Dallas Howard", "Rafe Spall" ],
+      type: "movie"
+    },
+    {
+      title: "Tag",
+      genres: [ "Comedy", "Action" ],
+      runtime: 105,
+      rated: "R",
+      year: 2018,
+      directors: [ "Jeff Tomsic" ],
+      cast: [ "Annabelle Wallis", "Jeremy Renner", "Jon Hamm" ],
+      type: "movie"
+    }
+])
+
+
+
+---------------------------------------------------------------------------
+11E. Query
+---------------------------------------------------------------------------
+
+>db.movies.find()
+It is like: SELECT * FROM movies
+
+>db.movies.find( { "title": "Titanic" } )
+It is like: SELECT * FROM movies WHERE title = "Titanic"
+
+>db.movies.find( { rated: { $in: [ "PG", "PG-13" ] } } )
+>db.movies.find( { countries: "Mexico", "imdb.rating": { $gte: 7 } } )
+
+To return movies from the sample_mflix.movies collection which were released in 2010 and either won at least 5 awards or have a genre of Drama:
+>db.movies.find( {
+     year: 2010,
+     $or: [ { "awards.wins": { $gte: 5 } }, { genres: "Drama" } ]
+} )
+---------------------------------------------------------------------------
+11F.1 Update
+---------------------------------------------------------------------------
+
+>use school
+>db.createCollection("students")
+>db.students.insertMany( [
+   { _id: 1, test1: 95, test2: 92, test3: 90, modified: new Date("01/05/2020") },
+   { _id: 2, test1: 98, test2: 100, test3: 102, modified: new Date("01/05/2020") },
+   { _id: 3, test1: 95, test2: 110, modified: new Date("01/04/2020") }
+] )
+>db.students.find()
+>db.students.updateOne( { _id: 3 }, [ { $set: { "test3": 98, modified: "$$NOW"} } ] )
+
+>db.createCollection("empDetails")
+>db.empDetails.insertMany(
+	[
+		{
+			First_Name: "Radhika",
+			Last_Name: "Sharma",
+			Age: "26",
+			e_mail: "radhika_sharma.123@gmail.com",
+			phone: "9000012345"
+		},
+		{
+			First_Name: "Rachel",
+			Last_Name: "Christopher",
+			Age: "27",
+			e_mail: "Rachel_Christopher.123@gmail.com",
+			phone: "9000054321"
+		},
+		{
+			First_Name: "Fathima",
+			Last_Name: "Sheik",
+			Age: "24",
+			e_mail: "Fathima_Sheik.123@gmail.com",
+			phone: "9000054321"
+		}
+	]
+)
+>db.empDetails.findOneAndUpdate(
+	{First_Name: 'Radhika'},
+	{ $set: { Age: '30',e_mail: 'radhika_newemail@gmail.com'}}
+)
+
+> db.empDetails.updateMany(
+	{Age:{ $gt: "25" }},
+	{ $set: { Age: '00'}}
+)
+
+
+---------------------------------------------------------------------------
+11F.2 Updations
+---------------------------------------------------------------------------
+> db.collection('inventory').insertMany([
+  {
+    item: 'canvas',
+    qty: 100,
+    size: { h: 28, w: 35.5, uom: 'cm' },
+    status: 'A'
+  },
+  {
+    item: 'journal',
+    qty: 25,
+    size: { h: 14, w: 21, uom: 'cm' },
+    status: 'A'
+  },
+  {
+    item: 'mat',
+    qty: 85,
+    size: { h: 27.9, w: 35.5, uom: 'cm' },
+    status: 'A'
+  },
+  {
+    item: 'mousepad',
+    qty: 25,
+    size: { h: 19, w: 22.85, uom: 'cm' },
+    status: 'P'
+  },
+  {
+    item: 'notebook',
+    qty: 50,
+    size: { h: 8.5, w: 11, uom: 'in' },
+    status: 'P'
+  },
+  {
+    item: 'paper',
+    qty: 100,
+    size: { h: 8.5, w: 11, uom: 'in' },
+    status: 'D'
+  },
+  {
+    item: 'planner',
+    qty: 75,
+    size: { h: 22.85, w: 30, uom: 'cm' },
+    status: 'D'
+  },
+  {
+    item: 'postcard',
+    qty: 45,
+    size: { h: 10, w: 15.25, uom: 'cm' },
+    status: 'A'
+  },
+  {
+    item: 'sketchbook',
+    qty: 80,
+    size: { h: 14, w: 21, uom: 'cm' },
+    status: 'A'
+  },
+  {
+    item: 'sketch pad',
+    qty: 95,
+    size: { h: 22.85, w: 30.5, uom: 'cm' },
+    status: 'A'
+  }
+]);
+
+> db.collection('inventory').updateOne(
+  { item: 'paper' },
+  {
+    $set: { 'size.uom': 'cm', status: 'P' },
+    $currentDate: { lastModified: true }
+  }
+);
+
+> db.collection('inventory').updateMany(
+  { qty: { $lt: 50 } },
+  {
+    $set: { 'size.uom': 'in', status: 'P' },
+    $currentDate: { lastModified: true }
+  }
+);
+
+> db.collection('inventory').replaceOne(
+  { item: 'paper' },
+  {
+    item: 'paper',
+    instock: [
+      { warehouse: 'A', qty: 60 },
+      { warehouse: 'B', qty: 40 }
+    ]
+  }
+);
+
+---------------------------------------------------------------------------
+11F.3 Updates with Aggregation Pipeline 
+---------------------------------------------------------------------------
+
+Using the aggregation pipeline allows for a more expressive update statement, such as expressing conditional updates based on current field values or updating one field using the value of another field(s).
+
+With the update operations, the aggregation pipeline can consist of the following stages:
+
+$addFields
+$set
+$project
+$unset
+$replaceRoot
+$replaceWith
+
+Examples:
+
+
+db.students.insertMany( [
+   { _id: 1, test1: 95, test2: 92, test3: 90, modified: new Date("01/05/2020") },
+   { _id: 2, test1: 98, test2: 100, test3: 102, modified: new Date("01/05/2020") },
+   { _id: 3, test1: 95, test2: 110, modified: new Date("01/04/2020") }
+] )
+
+db.students.find()
+
+db.students.updateOne( { _id: 3 }, [ { $set: { "test3": 98, modified: "$$NOW"} } ] )
+
+db.students.find().pretty() 
+
+ 
+---- updateMany with $replaceRoot and $set
+
+db.students2.insertMany( [
+   { "_id" : 1, quiz1: 8, test2: 100, quiz2: 9, modified: new Date("01/05/2020") },
+   { "_id" : 2, quiz2: 5, test1: 80, test2: 89, modified: new Date("01/05/2020") },
+] )
+
+db.students2.find()
+
+db.students2.updateMany( {},
+  [
+    { $replaceRoot: { newRoot:
+       { $mergeObjects: [ { quiz1: 0, quiz2: 0, test1: 0, test2: 0 }, "$$ROOT" ] }
+    } },
+    { $set: { modified: "$$NOW"}  }
+  ]
+)
+
+a $replaceRoot stage with a $mergeObjects expression to set default values for the quiz1, quiz2, test1 and test2 fields. The aggregation variable ROOT refers to the current document being modified. To access the variable, prefix with $$ and enclose in quotes. The current document fields will override the default values.
+
+a $set stage to update the modified field to the current datetime. The operation uses the aggregation variable NOW for the current datetime. To access the variable, prefix with $$ and enclose in quotes.
+
+db.students2.find()
+
+
+---- updateMany with $set
+
+db.students3.insertMany( [
+   { "_id" : 1, "tests" : [ 95, 92, 90 ], "modified" : ISODate("2019-01-01T00:00:00Z") },
+   { "_id" : 2, "tests" : [ 94, 88, 90 ], "modified" : ISODate("2019-01-01T00:00:00Z") },
+   { "_id" : 3, "tests" : [ 70, 75, 82 ], "modified" : ISODate("2019-01-01T00:00:00Z") }
+] );
+
+
+db.students3.find()
+
+db.students3.updateMany(
+   { },
+   [
+     { $set: { average : { $trunc: [ { $avg: "$tests" }, 0 ] }, modified: "$$NOW" } },
+     { $set: { grade: { $switch: {
+                           branches: [
+                               { case: { $gte: [ "$average", 90 ] }, then: "A" },
+                               { case: { $gte: [ "$average", 80 ] }, then: "B" },
+                               { case: { $gte: [ "$average", 70 ] }, then: "C" },
+                               { case: { $gte: [ "$average", 60 ] }, then: "D" }
+                           ],
+                           default: "F"
+     } } } }
+   ]
+)
+
+Specifically, the pipeline consists of:
+
+a $set stage to calculate the truncated average value of the tests array elements and to update the modified field to the current datetime. To calculate the truncated average, the stage uses the $avg and $trunc expressions. The operation uses the aggregation variable NOW for the current datetime. To access the variable, prefix with $$ and enclose in quotes.
+
+a $set stage to add the grade field based on the average using the $switch expression.
+
+db.students3.find()
+
+---- updateOne with $set
+
+db.students4.insertMany( [
+  { "_id" : 1, "quizzes" : [ 4, 6, 7 ] },
+  { "_id" : 2, "quizzes" : [ 5 ] },
+  { "_id" : 3, "quizzes" : [ 10, 10, 10 ] }
+] )
+
+db.students4.find()
+
+db.students4.updateOne( { _id: 2 },
+  [ { $set: { quizzes: { $concatArrays: [ "$quizzes", [ 8, 6 ]  ] } } } ]
+)
+
+db.students4.find()
+
+---- updateMany with $addFields
+
+The following db.collection.updateMany() operation uses an aggregation pipeline to update the documents with the corresponding temperatures in Fahrenheit:
+
+db.temperatures.insertMany( [
+  { "_id" : 1, "date" : ISODate("2019-06-23"), "tempsC" : [ 4, 12, 17 ] },
+  { "_id" : 2, "date" : ISODate("2019-07-07"), "tempsC" : [ 14, 24, 11 ] },
+  { "_id" : 3, "date" : ISODate("2019-10-30"), "tempsC" : [ 18, 6, 8 ] }
+] )
+
+db.temperatures.find()
+
+db.temperatures.updateMany( { },
+  [
+    { $addFields: { "tempsF": {
+          $map: {
+             input: "$tempsC",
+             as: "celsius",
+             in: { $add: [ { $multiply: ["$$celsius", 9/5 ] }, 32 ] }
+          }
+    } } }
+  ]
+)
+
+db.temperatures.find()
+
+---------------------------------------------------------------------------
+11G. Delete
+---------------------------------------------------------------------------
+
+>db.empDetails.remove({'First_Name':'Radhika'})
+
+Remove everything
+>db.empDetails.remove({})
+
+---------------------------------------------------------------------------
+11H. Sorting
+---------------------------------------------------------------------------
+
+>db.empDetails.find().sort({KEY:1})
+
+-1 for descending
+
+---------------------------------------------------------------------------
+11I. Using MongoDB in Flask
+---------------------------------------------------------------------------
+
